@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shaka — Roblox Scripter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111119;
+    --card: #16161f;
+    --card-hover: #1c1c28;
+    --border: #2a2a3a;
+    --text: #e8e8f0;
+    --text-dim: #8888a0;
+    --accent: #00e87b;
+    --accent-glow: rgba(0, 232, 123, 0.15);
+    --accent2: #00c8ff;
+    --red: #ff4466;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── GRID BG ── */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-orb {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-orb.green { background: var(--accent); top: -200px; left: -100px; }
+  .glow-orb.blue { background: var(--accent2); bottom: -200px; right: -100px; }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── NAV ── */
+  nav {
+    padding: 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--text-dim); }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 100px 0 80px;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(0,232,123,0.2);
+    border-radius: 100px;
+    padding: 6px 18px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 32px;
+    animation: fadeDown 0.6s ease;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    margin-bottom: 20px;
+    animation: fadeDown 0.6s ease 0.1s both;
+  }
+  .hero h1 .highlight {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    color: var(--text-dim);
+    font-size: 1.15rem;
+    max-width: 520px;
+    margin: 0 auto 40px;
+    animation: fadeDown 0.6s ease 0.2s both;
+  }
+  .hero-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    animation: fadeDown 0.6s ease 0.3s both;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    border: none;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 30px var(--accent-glow);
+    transform: translateY(-2px);
+  }
+  .btn-secondary {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover {
+    border-color: var(--text-dim);
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── STATS ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 100px;
+  }
+  .stat {
+    background: var(--card);
+    padding: 36px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-label {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  /* ── SECTIONS ── */
+  .section-header {
+    margin-bottom: 48px;
+  }
+  .section-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+
+  /* ── SKILLS ── */
+  .skills-section { margin-bottom: 100px; }
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .skill-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    transition: all 0.3s;
+  }
+  .skill-card:hover {
+    border-color: var(--accent);
+    background: var(--card-hover);
+    transform: translateY(-4px);
+  }
+  .skill-icon {
+    width: 40px; height: 40px;
+    background: var(--accent-glow);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+  }
+  .skill-card h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .skill-card p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  /* ── PROJECTS ── */
+  .projects-section { margin-bottom: 100px; }
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  .project-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .project-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .project-img {
+    width: 100%;
+    height: 200px;
+    background: var(--bg2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .project-img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,232,123,0.05), rgba(0,200,255,0.05));
+  }
+  .project-body { padding: 24px; }
+  .project-body h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .project-body p {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tag {
+    background: rgba(0,232,123,0.08);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── CONTACT ── */
+  .contact-section {
+    margin-bottom: 80px;
+    text-align: center;
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
+  }
+  .contact-section h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+  .contact-section p {
+    color: var(--text-dim);
+    margin-bottom: 36px;
+    font-size: 1.05rem;
+  }
+  .discord-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 36px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .discord-tag:hover {
+    border-color: #5865F2;
+    box-shadow: 0 0 30px rgba(88,101,242,0.15);
+    transform: translateY(-2px);
+  }
+  .discord-tag svg { width: 24px; height: 24px; fill: #5865F2; }
+  .copied-tooltip {
+    position: absolute;
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.25s;
+  }
+  .copied-tooltip.show {
+    opacity: 1;
+    transform: translateY(-8px);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+  footer span { color: var(--accent); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: 1fr; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .nav-links { gap: 20px; }
+    .hero { padding: 60px 0 50px; }
+    .hero-buttons { flex-direction: column; align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="glow-orb green"></div>
+<div class="glow-orb blue"></div>
+
+<div class="container">
+  <nav>
+    <div class="logo">shaka<span>.lua</span></div>
+    <div class="nav-links">
+      <a href="#skills">Skills</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">Available for commissions</div>
+    <h1>I'm <span class="highlight">Shaka</span>,<br>Roblox Scripter</h1>
+    <p>Full-stack Luau developer — I build anything and everything. From gameplay systems to polished UI, if it runs in Roblox, I can script it.</p>
+    <div class="hero-buttons">
+      <a href="#contact" class="btn btn-primary">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Get in touch
+      </a>
+      <a href="#projects" class="btn btn-secondary">
+        View my work ↓
+      </a>
+    </div>
+  </section>
+
+  <!-- STATS — Edit your numbers here -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">2+</div>
+      <div class="stat-label">Years Experience</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">10+</div>
+      <div class="stat-label">Projects Completed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Satisfaction Rate</div>
+    </div>
+  </div>
+
+  <!-- SKILLS -->
+  <section class="skills-section" id="skills">
+    <div class="section-header">
+      <div class="section-tag">// What I Do</div>
+      <h2>Skills & Expertise</h2>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="skill-icon">⚔️</div>
+        <h3>Combat Systems</h3>
+        <p>Hitboxes, combos, abilities, PvP balancing, and smooth combat feel.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">💾</div>
+        <h3>DataStores</h3>
+        <p>Saving, loading, session locking, data migration, and anti-corruption.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🎨</div>
+        <h3>UI / UX</h3>
+        <p>Clean interfaces, animations, tweening, and responsive design.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🔧</div>
+        <h3>Game Systems</h3>
+        <p>Inventory, shops, quests, leveling, matchmaking — the full stack.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🛡️</div>
+        <h3>Anti-Exploit</h3>
+        <p>Server validation, sanity checks, and exploit prevention.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">⚡</div>
+        <h3>Optimization</h3>
+        <p>Performance profiling, lag reduction, and clean architecture.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       PROJECTS — EDIT THIS SECTION TO ADD YOUR WORK
+       
+       To add a project, copy one <div class="project-card"> 
+       block and paste it below the others.
+       
+       To add an image: replace the <div class="project-img">
+       with: <img src="YOUR_IMAGE_URL" class="project-img" 
+       style="object-fit:cover;">
+       ═══════════════════════════════════════════════ -->
+  <section class="projects-section" id="projects">
+    <div class="section-header">
+      <div class="section-tag">// My Work</div>
+      <h2>Featured Projects</h2>
+    </div>
+    <div class="projects-grid">
+
+      <!-- PROJECT 1 -->
+      <div class="project-card">
+        <div class="project-img">screenshot or image here</div>
+        <div class="project-body">
+          <h3>Project Name</h3>
+          <p>Describe what you built, your role, and any impressive results (players, visits, etc).</p>
+          <div class="project-tags">
+            <span class="tag">Luau</span>
+            <span class="tag">Combat</span>
+            <span class="tag">UI</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROJECT 2 -->
+      <div class="project-card">
+        <div class="project-img">screenshot or image here</div>
+        <div class="project-body">
+          <h3>Project Name</h3>
+          <p>Describe what you built, your role, and any impressive results.</p>
+          <div class="project-tags">
+            <span class="tag">Luau</span>
+            <span class="tag">DataStore</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROJECT 3 -->
+      <div class="project-card">
+        <div class="project-img">screenshot or image here</div>
+        <div class="project-body">
+          <h3>Project Name</h3>
+          <p>Describe what you built, your role, and any impressive results.</p>
+          <div class="project-tags">
+            <span class="tag">Luau</span>
+            <span class="tag">Systems</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact-section" id="contact">
+    <div class="section-tag">// Let's Work</div>
+    <h2>Get In Touch</h2>
+    <p>Open for commissions and team projects. Reach out on Discord.</p>
+    <div style="position:relative; display:inline-block;">
+      <div class="discord-tag" onclick="copyDiscord(this)">
+        <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
+        shakazulu__
+      </div>
+      <div class="copied-tooltip" id="tooltip">Copied!</div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 <span>Shaka</span> — Built different.</p>
+  </footer>
+</div>
+
+<script>
+function copyDiscord(el) {
+  navigator.clipboard.writeText('shakazulu__');
+  const tip = document.getElementById('tooltip');
+  tip.classList.add('show');
+  setTimeout(() => tip.classList.remove('show'), 1500);
+}
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.skill-card, .project-card, .stat').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(30px)';
+  el.style.transition = 'all 0.5s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
